@@ -52,4 +52,3 @@ before deploying.
   later based on real usage.
 - Uses Gemini's free tier (`gemini-2.5-flash`) — no billing required, but
   subject to Google's free-tier rate limits.
-

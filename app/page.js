@@ -47,6 +47,12 @@ export default function Home() {
 
   return (
     <main style={{ maxWidth: 640, margin: '0 auto', padding: '64px 24px 96px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+        <img src="/logo.svg" alt="" width={28} height={28} style={{ borderRadius: 7 }} />
+        <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 17, color: 'var(--ink)' }}>
+          GradeMyProfile
+        </span>
+      </div>
       <p style={{ fontSize: 13, letterSpacing: '0.02em', color: 'var(--text-muted)', marginBottom: 8 }}>
         A free tool from @CollegeGuide018
       </p>
