@@ -1,215 +1,141 @@
-'use client';
+import Link from 'next/link';
+import SiteHeader from './components/SiteHeader';
+import SiteFooter from './components/SiteFooter';
 
-import { useState } from 'react';
+const rubricSections = [
+  ['Headline', 'A real identity, not just "Student at X University"'],
+  ['Contact info', 'Recruiters can actually reach you'],
+  ['About', "Opens with what you're building, easy to read"],
+  ['Experience', 'Bullets with real, quantified impact'],
+  ['Projects', "What you built, and what it's made of"],
+  ['Honors & awards', 'Hackathons, competitions, talks — anything earned'],
+  ['Skills', '5+ listed, aligned with what you actually say you do'],
+];
 
-function scoreColor(score, max) {
-  const pct = score / max;
-  if (pct >= 0.7) return 'var(--good)';
-  if (pct >= 0.4) return 'var(--warn)';
-  return 'var(--bad)';
-}
+const manualCheckItems = [
+  ['Photo & banner', 'professional, and not left blank'],
+  ['Company logos', 'showing correctly on each role'],
+  ['Featured section', 'the most-skipped, highest-leverage spot'],
+];
 
-export default function Home() {
-  const [file, setFile] = useState(null);
-  const [status, setStatus] = useState('idle'); // idle | loading | done | error
-  const [result, setResult] = useState(null);
-  const [errorMsg, setErrorMsg] = useState('');
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!file) return;
-    setStatus('loading');
-    setErrorMsg('');
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await fetch('/api/score', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (!res.ok) {
-        setErrorMsg(data.error || 'Something went wrong scoring your profile.');
-        setStatus('error');
-        return;
-      }
-      setResult(data);
-      setStatus('done');
-    } catch (err) {
-      setErrorMsg('Could not reach the scoring service. Try again in a moment.');
-      setStatus('error');
-    }
-  }
-
-  function reset() {
-    setFile(null);
-    setResult(null);
-    setStatus('idle');
-    setErrorMsg('');
-  }
+export default function HomePage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'GradeMyProfile',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    description:
+      'Free tool that scores a LinkedIn profile section by section and gives specific rewrite suggestions, built for college students and early-career tech talent.',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  };
 
   return (
-    <main style={{ maxWidth: 640, margin: '0 auto', padding: '64px 24px 96px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-        <img src="/logo.svg" alt="" width={28} height={28} style={{ borderRadius: 7 }} />
-        <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 17, color: 'var(--ink)' }}>
-          GradeMyProfile
-        </span>
-      </div>
-      <p style={{ fontSize: 13, letterSpacing: '0.02em', color: 'var(--text-muted)', marginBottom: 8 }}>
-        A free tool from @CollegeGuide018
-      </p>
-      <h1 style={{ fontSize: 40, lineHeight: 1.1, margin: '0 0 16px' }}>
-        Find out what's actually wrong with your LinkedIn profile.
-      </h1>
-      <p style={{ fontSize: 17, color: 'var(--text-muted)', lineHeight: 1.6, maxWidth: 520 }}>
-        Upload your profile as a PDF and get a section-by-section score, plus
-        exact rewrite suggestions — not vague "add more keywords" advice.
-      </p>
+    <>
+      {/* eslint-disable-next-line react/no-danger */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <SiteHeader />
 
-      {status !== 'done' && (
-        <form onSubmit={handleSubmit} style={{ marginTop: 40 }}>
-          <label
-            htmlFor="pdf-upload"
-            style={{
-              display: 'block',
-              border: `1px dashed var(--line)`,
-              borderRadius: 4,
-              padding: '32px 24px',
-              textAlign: 'center',
-              cursor: 'pointer',
-              background: 'var(--paper-raised)',
-            }}
-          >
-            <div style={{ fontSize: 15, marginBottom: 6 }}>
-              {file ? file.name : 'Click to choose your LinkedIn PDF export'}
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-              On your profile: More → Save to PDF
-            </div>
-            <input
-              id="pdf-upload"
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => setFile(e.target.files[0])}
-              style={{ display: 'none' }}
-            />
-          </label>
-
-          <button
-            type="submit"
-            disabled={!file || status === 'loading'}
-            style={{
-              marginTop: 20,
-              width: '100%',
-              padding: '14px 20px',
-              fontSize: 15,
-              fontWeight: 600,
-              color: '#fff',
-              background: !file || status === 'loading' ? '#A9AFC0' : 'var(--ink)',
-              border: 'none',
-              borderRadius: 4,
-              cursor: !file || status === 'loading' ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {status === 'loading' ? 'Scoring your profile…' : 'Score my profile'}
-          </button>
-
-          {status === 'error' && (
-            <p style={{ color: 'var(--bad)', marginTop: 12, fontSize: 14 }}>{errorMsg}</p>
-          )}
-        </form>
-      )}
-
-      {status === 'done' && result && (
-        <div style={{ marginTop: 48 }}>
-          <div
-            style={{
-              padding: '28px 24px',
-              background: 'var(--paper-raised)',
-              border: `1px solid var(--line)`,
-              borderRadius: 4,
-              marginBottom: 32,
-            }}
-          >
-            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 4 }}>
-              Overall score
-            </div>
-            <div style={{ fontSize: 48, fontFamily: 'Fraunces, serif', color: 'var(--ink)' }}>
-              {result.overall_score}
-              <span style={{ fontSize: 20, color: 'var(--text-muted)' }}>/100</span>
-            </div>
+      <main>
+        <section
+          className="wrap hero"
+          style={{ padding: '72px 24px 56px', display: 'grid', gap: 48, alignItems: 'center' }}
+        >
+          <div>
+            <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 14 }}>
+              A free tool from @CollegeGuide018
+            </p>
+            <h1 style={{ fontSize: 44, lineHeight: 1.12, marginBottom: 20, maxWidth: 560 }}>
+              Your LinkedIn profile might be costing you interviews.
+            </h1>
+            <p style={{ fontSize: 17, color: 'var(--ink-muted)', lineHeight: 1.6, maxWidth: 460, marginBottom: 28 }}>
+              Upload it as a PDF and get a score for every section — headline, About, experience,
+              projects — plus exact rewrites you can paste in. Not "add more keywords" advice.
+            </p>
+            <Link href="/audit" className="btn btn-primary">Grade my profile</Link>
           </div>
 
-          <h2 style={{ fontSize: 20, marginBottom: 16 }}>Top priorities</h2>
-          <ol style={{ paddingLeft: 20, marginBottom: 40, lineHeight: 1.7 }}>
-            {result.top_3_priorities?.map((p, i) => (
-              <li key={i}>{p}</li>
-            ))}
-          </ol>
-
-          <h2 style={{ fontSize: 20, marginBottom: 16 }}>Section-by-section</h2>
-          {result.sections?.map((s, i) => (
-            <div
-              key={i}
-              style={{
-                borderBottom: `1px solid var(--line)`,
-                padding: '20px 0',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <h3 style={{ fontSize: 16, margin: 0, fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
-                  {s.name}
-                </h3>
-                <span style={{ fontWeight: 600, color: scoreColor(s.score, 10) }}>
-                  {s.score}/10
-                </span>
-              </div>
-              {s.whats_working && (
-                <p style={{ fontSize: 14, color: 'var(--good)', marginTop: 8 }}>✓ {s.whats_working}</p>
-              )}
-              {s.issues?.length > 0 && (
-                <ul style={{ fontSize: 14, color: 'var(--text)', marginTop: 8, paddingLeft: 18 }}>
-                  {s.issues.map((issue, j) => (
-                    <li key={j}>{issue}</li>
-                  ))}
-                </ul>
-              )}
-              {s.rewrite_suggestion && (
-                <div
-                  style={{
-                    marginTop: 10,
-                    padding: '10px 14px',
-                    background: '#F3F1EA',
-                    borderLeft: `3px solid var(--gold)`,
-                    fontSize: 14,
-                    fontStyle: 'italic',
-                  }}
-                >
-                  Try: "{s.rewrite_suggestion}"
-                </div>
-              )}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 4, padding: 24, maxWidth: 420 }}>
+            <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 10 }}>Headline</p>
+            <p style={{ fontSize: 15, textDecoration: 'line-through', color: 'var(--ink-muted)', marginBottom: 10 }}>
+              Computer Science Student at XYZ University
+            </p>
+            <p style={{ fontSize: 15, color: 'var(--pine)', fontWeight: 600, borderBottom: '2px solid var(--gold)', display: 'inline-block', paddingBottom: 2, marginBottom: 16 }}>
+              Building applications in MERN | CS @ XYZ University
+            </p>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <span style={{ background: 'var(--rust)', color: 'var(--paper)', fontSize: 12, fontWeight: 600, padding: '3px 9px', borderRadius: 3 }}>2/10</span>
+              <span style={{ color: 'var(--ink-muted)', fontSize: 13 }}>→</span>
+              <span style={{ background: 'var(--pine)', color: 'var(--paper)', fontSize: 12, fontWeight: 600, padding: '3px 9px', borderRadius: 3 }}>target 8+</span>
             </div>
-          ))}
+          </div>
+        </section>
 
-          <button
-            onClick={reset}
-            style={{
-              marginTop: 32,
-              padding: '10px 18px',
-              fontSize: 14,
-              background: 'transparent',
-              border: `1px solid var(--ink)`,
-              borderRadius: 4,
-              cursor: 'pointer',
-            }}
-          >
-            Score another profile
-          </button>
-        </div>
-      )}
+        <section id="how-it-works" className="wrap" style={{ padding: '56px 24px', borderTop: '1px solid var(--line)' }}>
+          <h2 style={{ fontSize: 26, marginBottom: 36 }}>How it works</h2>
+          <div className="three-col" style={{ display: 'grid', gap: 32 }}>
+            {[
+              ['1', 'Export your profile', 'On LinkedIn: More → Save to PDF'],
+              ['2', 'Upload it', 'Takes ten seconds. Nothing is saved after you get your results.'],
+              ['3', 'Get your grade', 'A score per section, plus exact rewrites you can paste straight in.'],
+            ].map(([num, title, body]) => (
+              <div key={num}>
+                <div style={{ fontFamily: 'var(--serif)', fontSize: 28, color: 'var(--gold-text)', marginBottom: 10 }}>{num}</div>
+                <h3 style={{ fontSize: 17, marginBottom: 8 }}>{title}</h3>
+                <p style={{ fontSize: 14, color: 'var(--ink-muted)', lineHeight: 1.6 }}>{body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-      <p style={{ marginTop: 64, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-        This is an early free version. Please don't upload anything you wouldn't
-        want processed by a third-party AI model.
-      </p>
-    </main>
+        <section className="wrap" style={{ padding: '56px 24px', borderTop: '1px solid var(--line)' }}>
+          <h2 style={{ fontSize: 26, marginBottom: 8 }}>What gets scored</h2>
+          <p style={{ fontSize: 15, color: 'var(--ink-muted)', marginBottom: 32, maxWidth: 560 }}>
+            Seven sections, scored from your profile text — based on what actually gets profiles
+            noticed, not a generic checklist.
+          </p>
+          <div className="three-col" style={{ display: 'grid', gap: '20px 32px', marginBottom: 40 }}>
+            {rubricSections.map(([name, desc]) => (
+              <div key={name} style={{ borderTop: '1px solid var(--line)', paddingTop: 14 }}>
+                <h3 style={{ fontSize: 15, marginBottom: 4 }}>{name}</h3>
+                <p style={{ fontSize: 13.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>{desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 4, padding: '20px 24px', maxWidth: 640 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', marginBottom: 10 }}>
+              Plus a manual checklist for what a PDF can't show us:
+            </p>
+            <ul style={{ fontSize: 13.5, color: 'var(--ink-muted)', lineHeight: 1.8, paddingLeft: 18, margin: 0 }}>
+              {manualCheckItems.map(([name, desc]) => (
+                <li key={name}><strong style={{ color: 'var(--ink)' }}>{name}</strong> — {desc}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section className="wrap" style={{ padding: '56px 24px', borderTop: '1px solid var(--line)' }}>
+          <div style={{ maxWidth: 640 }}>
+            <h2 style={{ fontSize: 24, marginBottom: 16 }}>Why it's free right now</h2>
+            <p style={{ fontSize: 15, color: 'var(--ink-muted)', lineHeight: 1.7, marginBottom: 12 }}>
+              This is a first version, built to actually be useful before it's polished. It runs on
+              a free AI tier, so there's no cost to you and no account to make.
+            </p>
+            <p style={{ fontSize: 15, color: 'var(--ink-muted)', lineHeight: 1.7 }}>
+              Nothing you upload is stored after you get your results. See exactly how your data is
+              handled on the{' '}
+              <Link href="/privacy" style={{ color: 'var(--gold-text)', fontWeight: 600 }}>privacy page</Link>.
+            </p>
+          </div>
+        </section>
+
+        <section className="wrap" style={{ padding: '48px 24px 72px' }}>
+          <Link href="/audit" className="btn btn-primary">Grade my profile</Link>
+        </section>
+      </main>
+
+      <SiteFooter />
+    </>
   );
 }

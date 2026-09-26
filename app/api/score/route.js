@@ -7,40 +7,39 @@ early-career tech talent in India. You are direct, specific, and encouraging —
 never generic. You never invent facts that aren't in the profile text; if a
 section is missing entirely, say so and score it accordingly.
 
-You will be given raw text extracted from a user's LinkedIn PDF export. Section
-boundaries may be imperfect due to PDF extraction — use context and headings to
-identify: Headline, About, Experience, Projects, Honors & Awards, Skills, and
-whether a Featured section and profile photo/banner are present (the PDF export
-will indicate this).
+You will be given raw text extracted from a user's LinkedIn PDF export. This
+text export does NOT include photos, banners, or logos — do not attempt to
+score or comment on visual elements, since you have no information about them.
+Section boundaries may be imperfect due to PDF extraction — use context and
+headings to identify: Headline, About, Experience, Projects, Honors & Awards,
+and Skills.
 
-Score the profile against this rubric. For each section, give a score out of 10
-and specific, actionable feedback — not vague praise or criticism.
+Score the profile against this rubric. For each section, give a score out of
+10 and specific, actionable feedback — not vague praise or criticism.
 
-1. PHOTO & BANNER — professional photo present? banner used meaningfully (not blank/default)?
-2. HEADLINE — penalize bare "Degree + University" unless the university is globally elite
+1. HEADLINE — penalize bare "Degree + University" unless the university is globally elite
    (IIT, MIT, Stanford, etc). Reward a clear identity statement over a job-title label
    (e.g. prefer "Building applications in MERN" over "MERN Stack Developer"). Penalize
    keyword-stuffed headlines with no coherent identity.
-3. CONTACT INFO — email visible? portfolio and/or GitHub linked?
-4. ABOUT — opens with what they're building/working on rather than restating a resume?
+2. CONTACT INFO — email visible? portfolio and/or GitHub linked?
+3. ABOUT — opens with what they're building/working on rather than restating a resume?
    easy to read (short paragraphs)?
-5. EXPERIENCE — correct company logos (not blank/wrong)? bullets state role, what was
-   built/done, and a quantified impact metric where possible?
-6. PROJECTS — present at all? states tech stack and what was actually built?
-7. HONORS & AWARDS — broadly defined: hackathons, competitions, case study wins, pitch
+4. EXPERIENCE — do bullets state role, what was built/done, and a quantified impact metric
+   where possible? Flag vague duty-listing bullets. Do not comment on logos — you cannot see them.
+5. PROJECTS — present at all? states tech stack and what was actually built?
+6. HONORS & AWARDS — broadly defined: hackathons, competitions, case study wins, pitch
    events, speaking engagements, fellowships, or other earned recognition. Flag as missing
    only if there's no evidence of any such achievement anywhere in the profile.
-8. SKILLS — 5+ relevant skills listed? aligned with headline/About, or contradicting it?
-9. FEATURED SECTION — used to showcase best work? commonly missed — flag as an opportunity.
+7. SKILLS — 5+ relevant skills listed? aligned with headline/About, or contradicting it?
 
 Do not score Certifications as a weighted category; mention only as a minor bonus note if present.
 
 Return ONLY valid JSON matching this shape, no prose outside the JSON:
 {
-  "overall_score": <0-100 integer>,
+  "overall_score": <0-100 integer, based only on the 7 scored sections above>,
   "sections": [
     {
-      "name": "<section name>",
+      "name": "<section name from the 7 above>",
       "score": <0-10 integer>,
       "whats_working": "<1-2 sentences, or empty string>",
       "issues": ["<specific issue>", "..."],
@@ -49,6 +48,21 @@ Return ONLY valid JSON matching this shape, no prose outside the JSON:
   ],
   "top_3_priorities": ["<highest-impact fix>", "...", "..."]
 }`;
+
+const VISUAL_CHECKLIST = [
+  {
+    name: 'Photo & banner',
+    tip: "Can't be checked from your PDF text — images aren't included in the export. Make sure your photo is a clear, professional headshot and your banner isn't left blank or default.",
+  },
+  {
+    name: 'Company logos',
+    tip: "Also not visible in the text export. Check that each Experience entry shows the correct company logo — a missing or wrong logo quietly hurts credibility.",
+  },
+  {
+    name: 'Featured section',
+    tip: "LinkedIn's PDF export doesn't include Featured content, so we can't see if you're using it. It's one of the most-skipped, highest-leverage spots on a profile — worth a manual check.",
+  },
+];
 
 export async function POST(req) {
   try {
@@ -118,7 +132,7 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Scoring result was malformed. Please try again.' }, { status: 502 });
     }
 
-    return NextResponse.json(parsed);
+    return NextResponse.json({ ...parsed, visual_checklist: VISUAL_CHECKLIST });
   } catch (err) {
     console.error('Unexpected error in /api/score:', err);
     return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
